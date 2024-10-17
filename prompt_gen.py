@@ -1,7 +1,20 @@
 import csv
 import os
 import random
+import pandas as pd 
 from pathlib import Path
+
+def sort_elements_csv(file_path):
+    # Read the CSV data into a DataFrame
+    df = pd.read_csv(file_path)
+    
+    # Sort the DataFrame by 'frame_id'
+    sorted_df = df.sort_values(by='frame_id')
+    
+    # Save the sorted DataFrame to a new CSV file
+    sorted_df.to_csv(file_path, index=False)
+    return file_path
+
 
 def generate_prompts(elements_folder, prompts_output_folder):
     # Tạo folder đầu ra nếu nó không tồn tại
@@ -13,11 +26,13 @@ def generate_prompts(elements_folder, prompts_output_folder):
 
     # Định nghĩa các mẫu đa dạng cho các prompt
     templates = [
-        "A {gender} with {color} is {action}",
-        "A {gender} wearing {color} is {action}",
-        "A {gender} dressed in {color} is {action}",
-        "A {gender} who has {color} is {action}",
-        "A {gender} having {color} is {action}"
+        "{gender} in {color}",
+        "{gender}",
+        "{gender} {type}",
+        "{type} in {color}",
+        "{gender} {type} in {color}",
+        "{type}"
+         
 
         
     ]
@@ -28,18 +43,19 @@ def generate_prompts(elements_folder, prompts_output_folder):
     for elements_file in csv_files:
         prompts = []
         csv_path = os.path.join(elements_folder, elements_file)
-        with open(csv_path, mode='r') as file:
+        csv_sorted_path = sort_elements_csv(csv_path)
+        with open(csv_sorted_path, mode='r') as file:
             reader = csv.DictReader(file)
             for row in reader:
                 color = row.get('color', '').strip().lower()
-                action = row.get('action', '').strip().lower()
+                type = row.get('type', '').strip().lower()
                 gender = row.get('gender', '').strip().lower()
 
                 # Chọn ngẫu nhiên một template
                 template = random.choice(templates)
 
                 # Điền vào template với dữ liệu từ CSV
-                prompt = template.format(color=color, action=action, gender=gender)
+                prompt = template.format(color=color, type=type, gender=gender)
                 if prompt not in prompts: 
                     prompts.append(prompt)
 
